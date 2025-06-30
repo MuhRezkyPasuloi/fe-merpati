@@ -1,28 +1,38 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import Cookies from 'js-cookie';
-import { FaPhone, FaMapMarkerAlt, FaCamera, FaWallet } from 'react-icons/fa';
+import { useNavigate } from 'react-router-dom';
+import { FaPhone, FaMapMarkerAlt, FaCamera, FaWallet, FaSignOutAlt } from 'react-icons/fa';
 
 const Profil = () => {
   const [user, setUser] = useState(null);
+  const navigate = useNavigate();
 
   const fetchUser = async () => {
-  try {
-    const profile = JSON.parse(Cookies.get('profile')); // ambil dari cookies
-    const token = Cookies.get('token');
-    const id = profile.id;
+    try {
+      const profile = JSON.parse(Cookies.get('profile')); // ambil dari cookies
+      const token = Cookies.get('token');
+      const id = profile.id;
 
-    const res = await axios.get(`http://localhost:3000/api/nasabah/${id}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+      const res = await axios.get(`http://localhost:3000/api/nasabah/${id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-    setUser(res.data);
-  } catch (err) {
-    console.error('Gagal memuat profil:', err);
-  }
-};
+      setUser(res.data);
+    } catch (err) {
+      console.error('Gagal memuat profil:', err);
+    }
+  };
+
+  const handleLogout = () => {
+    Cookies.remove('token');
+    Cookies.remove('role');
+    Cookies.remove('username');
+    Cookies.remove('profile');
+    navigate('/');
+  };
 
   useEffect(() => {
     fetchUser();
@@ -33,7 +43,7 @@ const Profil = () => {
   }
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="space-y-6 p-6 pb-24">
       <div>
         <h1 className="text-xl font-bold text-gray-900">Selamat Datang, {user.nama.split(' ')[0]}!</h1>
         <p className="text-sm text-gray-500">Pantau aktivitas bank sampah Anda</p>
@@ -60,7 +70,6 @@ const Profil = () => {
               <FaCamera className="text-xs" />
             </button>
           </div>
-          
         </div>
 
         {/* Informasi Pribadi */}
@@ -75,7 +84,6 @@ const Profil = () => {
                 readOnly
               />
             </div>
-            
             <div>
               <label className="block text-sm font-medium text-gray-700">Saldo</label>
               <div className="flex items-center mt-1 border rounded-md px-3 py-2">
@@ -114,7 +122,8 @@ const Profil = () => {
             </div>
           </div>
           <div className="text-xs text-gray-500 text-right mt-4">
-            Terakhir diperbarui: <span className="font-medium">
+            Terakhir diperbarui:{' '}
+            <span className="font-medium">
               {new Date(user.updatedAt).toLocaleDateString('id-ID', {
                 day: 'numeric',
                 month: 'long',
@@ -125,9 +134,17 @@ const Profil = () => {
         </div>
       </div>
 
-      <div className="flex justify-end">
+      <div className="flex flex-col md:flex-row md:justify-end gap-4 mt-4">
         <button className="border border-gray-300 text-sm px-4 py-2 rounded-md text-gray-700 hover:bg-gray-50">
           Edit Profil
+        </button>
+        
+        {/* Tombol logout mobile */}
+        <button
+          onClick={handleLogout}
+          className="md:hidden flex items-center justify-center border border-red-500 text-red-500 px-4 py-2 rounded-md text-sm hover:bg-red-50"
+        >
+          <FaSignOutAlt className="mr-2" /> Logout
         </button>
       </div>
     </div>

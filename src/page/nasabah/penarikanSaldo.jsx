@@ -10,9 +10,9 @@ const PenarikanSaldo = () => {
   const [rekening, setRekening] = useState('');
   const [saldo, setSaldo] = useState(0);
 
-  const profile = JSON.parse(Cookies.get('profile')); // ambil dari cookies
-      const token = Cookies.get('token');
-      const id_nasabah = profile.id;
+  const profile = JSON.parse(Cookies.get('profile'));
+  const token = Cookies.get('token');
+  const id_nasabah = profile.id;
 
   const fetchPenarikan = async () => {
     try {
@@ -72,7 +72,7 @@ const PenarikanSaldo = () => {
       setBank('');
       setRekening('');
       fetchPenarikan();
-      fetchSaldo(); // refresh saldo setelah pengajuan
+      fetchSaldo();
     } catch (err) {
       console.error('Gagal mengajukan penarikan:', err);
       alert('Terjadi kesalahan saat mengajukan penarikan');
@@ -80,16 +80,16 @@ const PenarikanSaldo = () => {
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 p-4 md:p-6">
+      {/* Form Penarikan */}
       <div className="md:col-span-2 space-y-6">
-        <div className="bg-white p-6 rounded-lg border border-gray-200">
-          <h2 className="text-sm font-semibold mb-4">Form Penarikan</h2>
-          <div className="text-sm text-gray-600 mb-2">Saldo Tersedia</div>
+        <div className="bg-white p-4 md:p-6 rounded-lg border border-gray-200">
+          <h2 className="text-base md:text-sm font-semibold mb-4">Form Penarikan</h2>
+          <div className="text-sm text-gray-600 mb-1 md:mb-2">Saldo Tersedia</div>
           <div className="text-lg font-semibold text-green-700 mb-4">
             Rp {saldo.toLocaleString('id-ID')}
           </div>
 
-          {/* Form penarikan lanjut seperti biasa */}
           <label className="block text-sm font-medium mb-1">Jumlah Penarikan</label>
           <div className="flex items-center border rounded-md px-3 py-2 mb-1">
             <span className="text-gray-500">Rp</span>
@@ -168,12 +168,13 @@ const PenarikanSaldo = () => {
         </div>
       </div>
 
+      {/* Riwayat dan Info */}
       <div className="space-y-6">
-        <div className="bg-white p-6 rounded-lg border border-gray-200">
+        <div className="bg-white p-4 md:p-6 rounded-lg border border-gray-200">
           <h2 className="text-sm font-semibold mb-4">Riwayat Penarikan</h2>
           <ul className="space-y-4 text-sm">
             {penarikanList.map((item) => (
-              <li key={item.id} className="flex justify-between">
+              <li key={item.id} className="flex justify-between items-center">
                 <div>
                   <p className="font-medium">Rp {item.nominal.toLocaleString()}</p>
                   <p className="text-gray-500 text-xs">
@@ -181,19 +182,22 @@ const PenarikanSaldo = () => {
                   </p>
                 </div>
                 <span
-                  className={`font-medium ${
-                    item.status === 'disetujui' ? 'text-green-600' :
-                    item.status === 'ditolak' ? 'text-red-500' : 'text-yellow-500'
+                  className={`text-sm font-medium rounded-full px-2 py-1 text-white ${
+                    item.status === 'disetujui'
+                      ? 'bg-green-600'
+                      : item.status === 'ditolak'
+                      ? 'bg-red-500'
+                      : 'bg-yellow-500'
                   }`}
                 >
-                  {item.status === 'disetujui' ? '✓ Selesai' : item.status}
+                  {item.status === 'disetujui' ? 'Berhasil' : item.status === 'diproses' ? 'Diproses' : 'Ditolak'}
                 </span>
               </li>
             ))}
           </ul>
         </div>
 
-        <div className="bg-white p-6 rounded-lg border border-yellow-300">
+        <div className="bg-white p-4 md:p-6 rounded-lg border border-yellow-300">
           <h2 className="text-sm font-semibold mb-2 text-yellow-800">Informasi Penarikan</h2>
           <ul className="list-disc list-inside text-xs text-gray-700 space-y-1">
             <li>Minimal penarikan Rp 10.000</li>

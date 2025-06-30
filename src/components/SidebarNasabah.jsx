@@ -1,6 +1,6 @@
 // src/components/SidebarNasabah.jsx
 import React from 'react';
-import { Navigate, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import {
   FaWallet,
   FaChartBar,
@@ -22,22 +22,15 @@ const Sidebar = ({ activePage, onNavigate }) => {
 
   const navigate = useNavigate();
   const handleLogout = () => {
-    // Hapus data dari localStorage atau cookie
     localStorage.removeItem('token');
     localStorage.removeItem('role');
     localStorage.removeItem('username');
     localStorage.removeItem('profile');
-
-    // Atau kalau kamu pakai cookie, contoh:
-    // document.cookie = "token=; max-age=0";
-
-    // Redirect ke halaman login
-   
     navigate('/');
   };
 
   return (
-    <aside className="fixed top-0 left-0 z-20 w-56 h-screen bg-white border-r border-gray-200 flex flex-col justify-between">
+    <aside className="hidden md:flex fixed top-0 left-0 z-20 w-56 h-screen bg-white border-r border-gray-200 flex-col justify-between">
       <div>
         <div className="px-6 py-6 border-b border-gray-100">
           <div className="flex items-center space-x-2">
@@ -56,19 +49,16 @@ const Sidebar = ({ activePage, onNavigate }) => {
               key={item.key}
               onClick={() => onNavigate(item.key)}
               className={`flex items-center w-full px-4 py-2 rounded-md text-sm font-medium space-x-2 hover:bg-gray-100 ${
-                activePage === item.key
-                ? 'bg-green-100 text-green-800'
-                : 'text-gray-700'
+                activePage === item.key ? 'bg-green-100 text-green-800' : 'text-gray-700'
               }`}
             >
               {item.icon}
-                <span>{item.label}</span>
+              <span>{item.label}</span>
             </button>
           ))}
         </nav>
       </div>
-        
-      {/* Logout Button */}
+
       <div className="p-4 border-t">
         <button
           onClick={handleLogout}
