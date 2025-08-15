@@ -7,12 +7,15 @@ import Penimbangan from './petugas/penimbangan';
 import Nasabah from './petugas/nasabah';
 import Sampah from './petugas/sampah';
 import Setoran from './petugas/setoran';
+import Profil from './petugas/profilpetugas';
 
 const DashboardPetugas = () => {
-  const [activePage, setActivePage] = useState('penjemputan');
+  const [activePage, setActivePage] = useState('profil');
 
   const renderPage = () => {
     switch (activePage) {
+      case 'profil':
+        return <Profil />;
       case 'penjemputan':
         return <Penjemputan />;
       case 'pembayaran':

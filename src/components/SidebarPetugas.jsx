@@ -15,6 +15,7 @@ import {
 const SidebarPetugas = ({ activePage, onNavigate }) => {
   const [openSubmenu, setOpenSubmenu] = useState(null);
   const menu = [
+    { key: 'profil', icon: <FaCalendarAlt />, label: 'Profil' },
     { key: 'jadwal', icon: <FaCalendarAlt />, label: 'Penjualan' },
     { key: 'nasabah', icon: <FaUsers />, label: 'Data Nasabah' },
     { key: 'sampah', icon: <FaTrash />, label: 'Data Sampah' },

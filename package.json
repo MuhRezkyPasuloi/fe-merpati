@@ -2,6 +2,7 @@
   "name": "fe_merpati",
   "private": true,
   "version": "0.0.0",
+  "homepage": "http://bsumerpati.biz.id",
   "type": "module",
   "scripts": {
     "dev": "vite",

@@ -9,7 +9,8 @@ import {
 } from 'react-icons/fa';
 
 const navItems = [
-  { key: 'jadwal', icon: <FaCalendarAlt />, label: 'Penjualan' },
+      { key: 'profil', icon: <FaCalendarAlt />, label: 'Profil' },
+      { key: 'jadwal', icon: <FaCalendarAlt />, label: 'Penjualan' },
       { key: 'nasabah', icon: <FaUsers />, label: 'Data Nasabah' },
       { key: 'sampah', icon: <FaTrash />, label: 'Data Sampah' },
       //{ key: 'penimbangan', icon: <FaBalanceScale />, label: 'Tabungan' },
