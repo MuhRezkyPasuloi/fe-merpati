@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { FaPlus, FaEdit, FaTrash, FaFile } from 'react-icons/fa';
 import axios from 'axios';
+import Pagination from '../../components/Pagination'; 
 
 const ManajemenNasabah = () => {
   const [nasabahList, setNasabahList] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [selectedNasabah, setSelectedNasabah] = useState(null);
+  
   const [formData, setFormData] = useState({
     nama: '',
     username: '',
@@ -18,9 +20,25 @@ const ManajemenNasabah = () => {
 
   const [previewImage, setPreviewImage] = useState(null);
 
+  // State untuk notifikasi popup
+  const [notification, setNotification] = useState({ show: false, message: '', type: '' });
+
+  const itemsPerPage = 10;
+  const [currentPage, setCurrentPage] = useState(1);
+  const totalPages = Math.ceil(nasabahList.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const currentData = nasabahList.slice(startIndex, startIndex + itemsPerPage);
+
+  const showNotification = (message, type = 'success') => {
+    setNotification({ show: true, message, type });
+    setTimeout(() => {
+      setNotification({ show: false, message: '', type: '' });
+    }, 3000);
+  };
+
   const fetchNasabah = async () => {
     try {
-      const res = await axios.get('http://localhost:3000/api/nasabah');
+      const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/nasabah`);
       setNasabahList(res.data);
     } catch (err) {
       console.error('Error fetching data:', err);
@@ -67,7 +85,7 @@ const ManajemenNasabah = () => {
 
         if (selectedNasabah) {
         await axios.put(
-            `http://localhost:3000/api/nasabah/${selectedNasabah.id}`,
+            `${import.meta.env.VITE_API_URL}/api/nasabah/${selectedNasabah.id}`,
             payload,
             {
             headers: {
@@ -75,18 +93,21 @@ const ManajemenNasabah = () => {
             },
             }
         );
+        showNotification('Nasabah berhasil diperbarui', 'success');
         } else {
-        await axios.post('http://localhost:3000/api/nasabah', payload, {
+        await axios.post(`${import.meta.env.VITE_API_URL}/api/nasabah`, payload, {
             headers: {
             'Content-Type': 'multipart/form-data',
             },
         });
+        showNotification('Nasabah berhasil ditambahkan', 'success');
         }
 
         fetchNasabah();
         closeModal();
     } catch (err) {
         console.error('Submit error:', err);
+        showNotification('Gagal Menyimpan Data Nasabah', 'error');
     }
     };
 
@@ -94,19 +115,30 @@ const ManajemenNasabah = () => {
   const handleDelete = async (id) => {
     if (confirm('Yakin ingin menghapus nasabah ini?')) {
       try {
-        await axios.delete(`http://localhost:3000/api/nasabah/${id}`);
+        await axios.delete(`${import.meta.env.VITE_API_URL}/api/nasabah/${id}`);
         fetchNasabah();
+        showNotification('Nasabah berhasil dihapus', 'success');
       } catch (err) {
         console.error('Delete error:', err);
+        showNotification('Gagal menghapus nasabah', 'error');
       }
     }
   };
 
   return (
     <div className="p-6 space-y-6">
+      {/* Popup Notifikasi */}
+      {notification.show && (
+        <div
+          className={`fixed top-5 left-1/2 transform -translate-x-1/2 px-6 py-3 rounded-lg shadow-lg z-50 text-white font-medium
+            ${notification.type === 'success' ? 'bg-green-600' : 'bg-red-600'}`}
+        >
+          {notification.message}
+        </div>
+      )}
       <div>
         <h1 className="text-2xl font-bold text-[#111827]">Dashboard Admin</h1>
-        <p className="text-sm text-gray-500">Kelola sistem bank sampah HijauCycle</p>
+        <p className="text-sm text-gray-500">Kelola sistem BSU Merpati</p>
       </div>
       <div className="flex justify-between items-center">
         <h2 className="text-xl font-semibold text-[#111827]">Manajemen Nasabah</h2>
@@ -122,8 +154,9 @@ const ManajemenNasabah = () => {
         <table className="min-w-full text-sm">
           <thead className="bg-gray-50 text-gray-500">
             <tr>
+              <th className='p-3 text-left'>NO</th>
+              <th className='p-3 text-left'>ID</th>
               <th className="p-3 text-left">NAMA</th>
-              
               <th className="p-3 text-left">ALAMAT</th>
               <th className="p-3 text-left">NO HP</th>
               <th className="p-3 text-left">SALDO</th>
@@ -132,10 +165,11 @@ const ManajemenNasabah = () => {
             </tr>
           </thead>
           <tbody>
-            {nasabahList.map((n) => (
+            {currentData.map((n, index) => (
               <tr key={n.id} className="border-t">
+                <td className='p-3'>{index + 1}</td>
+                <td className='p-3'>TMR/KPS-{n.id}</td>
                 <td className="p-3">{n.nama}</td>
-                
                 <td className="p-3">{n.alamat}</td>
                 <td className="p-3">{n.no_hp}</td>
                 <td className="p-3">Rp {n.saldo.toLocaleString()}</td>
@@ -165,87 +199,123 @@ const ManajemenNasabah = () => {
             ))}
           </tbody>
         </table>
+        {/* Pagination */}
+      
       </div>
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          // onPageChange={(page) => setCurrentPage(page)}
+          onPageChange={setCurrentPage}
+        />
+      )}
 
       {/* Modal Form */}
-      {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded shadow-lg w-[90%] max-w-md">
-            <h3 className="text-lg font-semibold mb-4">{selectedNasabah ? 'Edit Nasabah' : 'Tambah Nasabah'}</h3>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <input
-                type="text"
-                name="nama"
-                placeholder="Nama"
-                value={formData.nama}
-                onChange={handleInputChange}
-                className="w-full border p-2 rounded"
-              />
-              <input
-                type="text"
-                name="username"
-                placeholder="Username"
-                value={formData.username}
-                onChange={handleInputChange}
-                className="w-full border p-2 rounded"
-              />
-              <input
-                type="text"
-                name="alamat"
-                placeholder="Alamat"
-                value={formData.alamat}
-                onChange={handleInputChange}
-                className="w-full border p-2 rounded"
-              />
-              <input
-                type="text"
-                name="no_hp"
-                placeholder="No HP"
-                value={formData.no_hp}
-                onChange={handleInputChange}
-                className="w-full border p-2 rounded"
-              />
-              <input
-                type="number"
-                name="saldo"
-                placeholder="Saldo"
-                value={formData.saldo}
-                onChange={handleInputChange}
-                className="w-full border p-2 rounded"
-              />
-              <input
-                type="file"
-                name="foto"
-                accept="image/*"
-                onChange={(e) => {
-                    const file = e.target.files[0];
-                    if (file) {
-                    setPreviewImage(URL.createObjectURL(file));
-                    setFormData((prev) => ({ ...prev, fotoFile: file }));
-                    }
-                }}
-                className="w-full border p-2 rounded"
-              />
+{showModal && (
+  <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
+    <div className="bg-white p-6 rounded shadow-lg w-[90%] max-w-md">
+      <h3 className="text-lg font-semibold mb-4">
+        {selectedNasabah ? 'Edit Nasabah' : 'Tambah Nasabah'}
+      </h3>
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
 
-              <div className="flex justify-end gap-2">
-                <button
-                  type="button"
-                  onClick={closeModal}
-                  className="px-4 py-2 rounded border hover:bg-gray-100"
-                >
-                  Batal
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 rounded bg-green-600 text-white hover:bg-green-700"
-                >
-                  Simpan
-                </button>
-              </div>
-            </form>
-          </div>
+          // ✅ Validasi panjang username
+          if (formData.username.length > 4) {
+            showNotification(
+              'Username harus terdiri lebih dari 4 karakter',
+              'error'
+            );
+            return; // hentikan submit
+          }
+
+          // ✅ Lanjutkan proses submit jika lolos validasi
+          handleSubmit(e);
+        }}
+        className="space-y-4"
+      >
+        <input
+          type="text"
+          name="nama"
+          placeholder="Nama"
+          value={formData.nama}
+          onChange={handleInputChange}
+          className="w-full border p-2 rounded"
+          required
+        />
+        <input
+          type="text"
+          name="username"
+          placeholder="Username (lebih dari 4 karakter)"
+          value={formData.username}
+          onChange={handleInputChange}
+          className="w-full border p-2 rounded"
+          required
+        />
+        <input
+          type="text"
+          name="alamat"
+          placeholder="Alamat"
+          value={formData.alamat}
+          onChange={handleInputChange}
+          className="w-full border p-2 rounded"
+          required
+        />
+        <input
+          type="text"
+          name="no_hp"
+          placeholder="No HP"
+          value={formData.no_hp}
+          onChange={handleInputChange}
+          className="w-full border p-2 rounded"
+          required
+        />
+        <input
+          type="number"
+          name="saldo"
+          placeholder="Saldo"
+          value={formData.saldo}
+          onChange={handleInputChange}
+          className="w-full border p-2 rounded"
+        />
+        <input
+          type="file"
+          name="foto"
+          accept="image/*"
+          onChange={(e) => {
+            const file = e.target.files[0];
+            if (file) {
+              setPreviewImage(URL.createObjectURL(file));
+              setFormData((prev) => ({ ...prev, fotoFile: file }));
+            }
+          }}
+          className="w-full border p-2 rounded"
+          required
+        />
+
+        <div className="flex justify-end gap-2">
+          <button
+            type="button"
+            onClick={closeModal}
+            className="px-4 py-2 rounded border hover:bg-gray-100"
+          >
+            Batal
+          </button>
+          <button
+            type="submit"
+            className="px-4 py-2 rounded bg-green-600 text-white hover:bg-green-700"
+          >
+            Simpan
+          </button>
         </div>
-      )}
+      </form>
+    </div>
+  </div>
+)}
+
 
       {/* Gambar Preview */}
       {previewImage && (

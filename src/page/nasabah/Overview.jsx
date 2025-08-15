@@ -42,23 +42,32 @@ const ActionButton = ({ children, Icon, primary, onClick }) =>
     </button>
   );
 
-const Contribution = () => (
-  <div className="bg-white rounded-lg border border-[#E6E8F0] p-4">
-    <h2 className="font-bold text-sm text-[#111827] mb-3">Kontribusi Lingkungan</h2>
-    <div className="flex justify-between text-xs text-[#374151] mb-1">
-      <span>CO₂ Berkurang</span>
-      <span className="text-[#047857] font-semibold">-45 kg</span>
+const Contribution = ({ totalBeratTahunIni }) => {
+  // Hitung CO₂ berkurang: 1 kg sampah = 0.5 kg CO₂
+  const co2Berkurang = totalBeratTahunIni * 0.5;
+
+  // Hitung pohon diselamatkan: 20 kg CO₂ = 1 pohon
+  const pohonDiselamatkan = co2Berkurang / 20;
+
+  return (
+    <div className="bg-white rounded-lg border border-[#E6E8F0] p-4">
+      <h2 className="font-bold text-sm text-[#111827] mb-3">Kontribusi Lingkungan</h2>
+      <div className="flex justify-between text-xs text-[#374151] mb-1">
+        <span>CO₂ Berkurang</span>
+        <span className="text-[#047857] font-semibold">
+          -{co2Berkurang.toFixed(1)} kg
+        </span>
+      </div>
+      <div className="flex justify-between text-xs text-[#374151] mb-1">
+        <span>Pohon Diselamatkan</span>
+        <span className="text-[#047857] font-semibold">
+          ~{pohonDiselamatkan.toFixed(2)} pohon
+        </span>
+      </div>
     </div>
-    <div className="flex justify-between text-xs text-[#374151] mb-1">
-      <span>Pohon Diselamatkan</span>
-      <span className="text-[#047857] font-semibold">~3 pohon</span>
-    </div>
-    <div className="flex justify-between text-xs text-[#374151]">
-      <span>Rank Kontributor</span>
-      <span className="bg-[#111827] text-white text-[9px] font-semibold rounded-full px-2 py-0.5">Top 15%</span>
-    </div>
-  </div>
-);
+  );
+};
+
 
 const TransactionItem = ({ title, subtitle, value, valueColor, status }) => (
   <li className="border border-[#E6E8F0] rounded-md p-3 flex justify-between items-center">
@@ -77,32 +86,59 @@ const Overview = ({ onNavigate }) => {
   const [tabungan, setTabungan] = useState([]);
   const [totalSampah, setTotalSampah] = useState(0);
   const [totalSaldo, setTotalSaldo] = useState(0);
+  const [menabungBulanIni, setMenabungBulanIni] = useState(0);
+const [penghasilanBulanIni, setPenghasilanBulanIni] = useState(0);
+
 
   useEffect(() => {
-    const fetchData = async () => {
-      const token = Cookies.get('token');
-      try {
-        const res = await axios.get('http://localhost:3000/api/tabungan/me', {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        const data = res.data.data;
+  const fetchData = async () => {
+    const token = Cookies.get('token');
+    try {
+      const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/tabungan/me`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const data = res.data.data;
+      setTabungan(data);
 
-        setTabungan(data);
+      const now = new Date();
+      const currentYear = now.getFullYear();
+      const currentMonth = now.getMonth(); // 0 = Januari, 7 = Agustus
 
-        const totalBerat = data.reduce((sum, item) => sum + item.berat, 0);
-        const totalUang = data.reduce((sum, item) => sum + item.total, 0);
+      // Filter tahun ini
+      const tahunIni = data.filter(item => new Date(item.created_at).getFullYear() === currentYear);
 
-        setTotalSampah(totalBerat);
-        setTotalSaldo(totalUang);
-      } catch (error) {
-        console.error('Gagal memuat data:', error);
-      }
-    };
+      // 1. Total Tabungan Tahun Ini 
+      const totalBelumDitarik = tahunIni
+        
+        .reduce((sum, item) => sum + item.total, 0);
 
-    fetchData();
-  }, []);
+      // 2. Total Sampah Tertabung Tahun Ini (kg)
+      const totalBeratTahunIni = tahunIni.reduce((sum, item) => sum + item.berat, 0);
+
+      // Filter bulan ini
+      const bulanIni = tahunIni.filter(item => new Date(item.created_at).getMonth() === currentMonth);
+
+      // 3. Menabung Bulan Ini (jumlah transaksi)
+      const jumlahMenabungBulanIni = bulanIni.length;
+
+      // 4. Penghasilan Bulan Ini
+      const totalPenghasilanBulanIni = bulanIni.reduce((sum, item) => sum + item.total, 0);
+
+      // Set state untuk card
+      setTotalSaldo(totalBelumDitarik);
+      setTotalSampah(totalBeratTahunIni);
+      setMenabungBulanIni(jumlahMenabungBulanIni);
+      setPenghasilanBulanIni(totalPenghasilanBulanIni);
+    } catch (error) {
+      console.error('Gagal memuat data:', error);
+    }
+  };
+
+  fetchData();
+}, []);
+
 
   return (
     <div className="flex flex-col md:flex-row min-h-screen bg-[#F8FAFC] font-sans text-[#111827]">
@@ -143,11 +179,12 @@ const Overview = ({ onNavigate }) => {
         </header>
 
         <section className="hidden md:grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-          <Card title="Saldo Saat Ini" value={`Rp ${totalSaldo.toLocaleString('id-ID')}`} Icon={FaWallet} iconBg="bg-[#A7E9D0]" iconColor="text-[#065F46]" />
-          <Card title="Total Sampah" value={`${totalSampah} kg`} Icon={FaBalanceScale} iconBg="bg-[#BFDBFE]" iconColor="text-[#2563EB]" />
-          <Card title="Penjemputan Bulan Ini" value="8" Icon={FaTruck} iconBg="bg-[#E9D5FF]" iconColor="text-[#7C3AED]" />
-          <Card title="Penghasilan Bulan Ini" value={`Rp ${totalSaldo.toLocaleString('id-ID')}`} Icon={FaChartLine} iconBg="bg-[#D1FAE5]" iconColor="text-[#065F46]" />
+          <Card title="Total Tabungan Tahun Ini" value={`Rp ${totalSaldo.toLocaleString('id-ID')}`} Icon={FaWallet} iconBg="bg-[#A7E9D0]" iconColor="text-[#065F46]" />
+          <Card title="Total Sampah Tertabung" value={`${totalSampah} kg`} Icon={FaBalanceScale} iconBg="bg-[#BFDBFE]" iconColor="text-[#2563EB]" />
+          <Card title="Menabung Bulan Ini" value={menabungBulanIni} Icon={FaTruck} iconBg="bg-[#E9D5FF]" iconColor="text-[#7C3AED]" />
+          <Card title="Penghasilan Bulan Ini" value={`Rp ${penghasilanBulanIni.toLocaleString('id-ID')}`} Icon={FaChartLine} iconBg="bg-[#D1FAE5]" iconColor="text-[#065F46]" />
         </section>
+
 
         <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="md:col-span-2 bg-white rounded-lg border border-[#E6E8F0] p-4 space-y-3">
@@ -159,24 +196,28 @@ const Overview = ({ onNavigate }) => {
               Tarik Saldo
             </ActionButton>
           </div>
-          <Contribution />
+          <Contribution totalBeratTahunIni={totalSampah}/>
         </section>
 
         <section className="bg-white rounded-lg border border-[#E6E8F0] p-4">
           <h2 className="font-bold text-sm text-[#111827] mb-4">Transaksi Terbaru</h2>
           <ul className="space-y-4">
-            {tabungan.slice(0, 3).map((item) => (
-              <TransactionItem
-                key={item.id}
-                title={`Setoran ${item.jenis_sampah}`}
-                subtitle={`${item.berat} kg • ${new Date(item.created_at).toISOString().split('T')[0]}`}
-                value={`+Rp ${item.total.toLocaleString('id-ID')}`}
-                valueColor="text-[#047857]"
-                status="Selesai"
-              />
-            ))}
+            {[...tabungan]
+              .sort((a, b) => new Date(b.created_at) - new Date(a.created_at)) // urutkan dari terbaru
+              .slice(0, 5)
+              .map((item) => (
+                <TransactionItem
+                  key={item.id}
+                  title={`Tabungan ${item.jenis_sampah}`}
+                  subtitle={`${item.berat} kg • ${new Date(item.created_at).toLocaleDateString('id-ID')}`}
+                  value={`+Rp ${item.total.toLocaleString('id-ID')}`}
+                  valueColor="text-[#047857]"
+                  status="Selesai"
+                />
+              ))}
           </ul>
         </section>
+
       </main>
     </div>
   );

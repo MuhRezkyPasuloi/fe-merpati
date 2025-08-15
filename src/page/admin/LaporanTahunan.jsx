@@ -1,12 +1,12 @@
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
-import Cookie from 'js-cookie';
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import Cookie from "js-cookie";
 
 const bulanOptions = [
-  'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
-  'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+  "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+  "Juli", "Agustus", "September", "Oktober", "November", "Desember"
 ];
 
 const tahunOptions = (() => {
@@ -14,38 +14,71 @@ const tahunOptions = (() => {
   return Array.from({ length: 5 }, (_, i) => tahunSekarang - i);
 })();
 
-const Laporan = () => {
-  const [bulan, setBulan] = useState(new Date().getMonth() + 1);
+const LaporanTahunan = () => {
   const [tahun, setTahun] = useState(new Date().getFullYear());
   const [laporan, setLaporan] = useState([]);
-  const token = Cookie.get('token');
+  const token = Cookie.get("token");
 
   const fetchLaporan = async () => {
     try {
       const res = await axios.get(
-        `${import.meta.env.VITE_API_URL}/api/laporan/bulanan?bulan=${bulan}&tahun=${tahun}`,
+        `${import.meta.env.VITE_API_URL}/api/laporan/tahunan/?tahun=${tahun}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setLaporan(res.data.data);
     } catch (err) {
-      console.error('Gagal mengambil laporan:', err);
+      console.error("Gagal mengambil laporan tahunan:", err);
     }
   };
 
   useEffect(() => {
     fetchLaporan();
-  }, [bulan, tahun]);
+  }, [tahun]);
 
-  const handleDownload = async () => {
-    const input = document.getElementById('laporan-pdf');
-    const canvas = await html2canvas(input);
-    const imgData = canvas.toDataURL('image/png');
-    const pdf = new jsPDF('p', 'mm', 'a4');
-    const imgProps = pdf.getImageProperties(imgData);
-    const pdfWidth = pdf.internal.pageSize.getWidth();
-    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-    pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-    pdf.save(`Laporan_Bulanan_${bulan}_${tahun}.pdf`);
+  // Fungsi buat export PDF panjang jadi multi halaman
+  const handleDownload = () => {
+    if (!laporan.length) {
+      alert("Tidak ada data untuk diunduh");
+      return;
+    }
+
+    const doc = new jsPDF("p", "mm", "a4");
+
+    doc.setFontSize(16);
+    doc.text(`Laporan Tahunan Tabungan Nasabah - ${tahun}`, 14, 15);
+
+    let allRows = [];
+
+    // Gabungkan semua bulan ke dalam satu array untuk PDF
+    groupByMonth(laporan).forEach((group) => {
+      // Tambahkan judul bulan sebagai baris kosong di tabel
+      allRows.push([
+        { content: `${group.namaBulan} ${group.tahun}`, colSpan: 6, styles: { halign: "center", fillColor: [220, 220, 220] } }
+      ]);
+
+      // Tambahkan data per bulan
+      group.records.forEach((item) => {
+        allRows.push([
+          item.no,
+          item.nama_nasabah,
+          item.jenis_sampah,
+          item.tanggal,
+          item.berat,
+          `Rp ${item.pendapatan.toLocaleString("id-ID")}`
+        ]);
+      });
+    });
+
+    autoTable(doc, {
+      head: [["No", "Nama Nasabah", "Jenis Sampah", "Tanggal Menabung", "Berat (kg)", "Pendapatan"]],
+      body: allRows,
+      startY: 25,
+      styles: { fontSize: 10, cellPadding: 2 },
+      headStyles: { fillColor: [52, 152, 219] },
+      pageBreak: "auto",
+    });
+
+    doc.save(`Laporan_Tahunan_${tahun}.pdf`);
   };
 
   const groupByMonth = (data) => {
@@ -53,13 +86,15 @@ const Laporan = () => {
 
     data.forEach((item) => {
       const dateObj = new Date(item.tanggal_menabung);
-      const key = `${dateObj.getMonth()}-${dateObj.getFullYear()}`;
-      const bulanNama = bulanOptions[dateObj.getMonth()];
+      const monthIndex = dateObj.getMonth();
+      const key = `${monthIndex}-${dateObj.getFullYear()}`;
+      const bulanNama = bulanOptions[monthIndex];
 
       if (!grouped[key]) {
         grouped[key] = {
           namaBulan: bulanNama,
           tahun: dateObj.getFullYear(),
+          monthIndex,
           records: []
         };
       }
@@ -67,13 +102,13 @@ const Laporan = () => {
       grouped[key].records.push({
         nama_nasabah: item.nama_nasabah,
         jenis_sampah: item.jenis_sampah,
-        tanggal: dateObj.toLocaleDateString('id-ID'),
+        tanggal: dateObj.toLocaleDateString("id-ID"),
         berat: item.total_berat,
         pendapatan: item.total_nominal
       });
     });
 
-    // Tambahkan nomor urut per bulan
+    // Nomor urut per bulan
     for (const key in grouped) {
       grouped[key].records = grouped[key].records.map((r, idx) => ({
         ...r,
@@ -81,7 +116,7 @@ const Laporan = () => {
       }));
     }
 
-    return Object.values(grouped);
+    return Object.values(grouped).sort((a, b) => a.monthIndex - b.monthIndex);
   };
 
   const groupedLaporan = groupByMonth(laporan);
@@ -89,19 +124,8 @@ const Laporan = () => {
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
       <div className="flex flex-col md:flex-row justify-between md:items-center mb-6 gap-4">
-        <h1 className="text-xl font-bold">Laporan Tabungan Nasabah</h1>
+        <h1 className="text-xl font-bold">Laporan Tahunan Tabungan Nasabah</h1>
         <div className="flex gap-2">
-          <select
-            value={bulan}
-            onChange={(e) => setBulan(Number(e.target.value))}
-            className="border rounded-md px-3 py-2 text-sm"
-          >
-            {bulanOptions.map((bln, index) => (
-              <option key={index + 1} value={index + 1}>
-                {bln}
-              </option>
-            ))}
-          </select>
           <select
             value={tahun}
             onChange={(e) => setTahun(Number(e.target.value))}
@@ -150,7 +174,7 @@ const Laporan = () => {
                       <td className="px-4 py-2 border capitalize">{item.jenis_sampah}</td>
                       <td className="px-4 py-2 border">{item.tanggal}</td>
                       <td className="px-4 py-2 border">{item.berat}</td>
-                      <td className="px-4 py-2 border">Rp {item.pendapatan.toLocaleString('id-ID')}</td>
+                      <td className="px-4 py-2 border">Rp {item.pendapatan.toLocaleString("id-ID")}</td>
                     </tr>
                   ))}
                 </React.Fragment>
@@ -159,7 +183,7 @@ const Laporan = () => {
           </table>
         ) : (
           <p className="text-center py-6 text-gray-500 text-sm">
-            Tidak ada data laporan untuk bulan ini.
+            Tidak ada data laporan untuk tahun ini.
           </p>
         )}
       </div>
@@ -167,4 +191,4 @@ const Laporan = () => {
   );
 };
 
-export default Laporan;
+export default LaporanTahunan;

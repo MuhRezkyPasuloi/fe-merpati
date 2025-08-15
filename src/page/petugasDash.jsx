@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import Sidebar from '../components/SidebarPetugas';
+import BottomNavPetugas from '../components/BottomNavPetugas';
 import Penjemputan from './petugas/penjemputan';
 import Pembayaran from './petugas/pembayaran';
 import Penimbangan from './petugas/penimbangan';
 import Nasabah from './petugas/nasabah';
 import Sampah from './petugas/sampah';
+import Setoran from './petugas/setoran';
 
 const DashboardPetugas = () => {
   const [activePage, setActivePage] = useState('penjemputan');
@@ -17,6 +19,8 @@ const DashboardPetugas = () => {
         return <Pembayaran />;
       case 'penimbangan':
         return <Penimbangan />;
+      case 'setoran':
+        return <Setoran />;
       case 'nasabah':
         return <Nasabah />;
       case 'sampah':
@@ -27,14 +31,22 @@ const DashboardPetugas = () => {
   };
 
   return (
-    <div className="flex h-screen bg-[#F8FAFC] font-sans text-[#111827]">
-      {/* Sidebar tetap di kiri */}
-      <Sidebar activePage={activePage} onNavigate={setActivePage} />
+    <div className="min-h-screen bg-[#F8FAFC] font-sans text-[#111827]">
+      {/* Desktop */}
+      <div className="hidden md:flex">
+        <Sidebar activePage={activePage} onNavigate={setActivePage} />
+        <main className="ml-56 w-full h-screen overflow-y-auto p-6">
+          {renderPage()}
+        </main>
+      </div>
 
-      {/* Konten utama */}
-      <main className="ml-60 w-full h-screen overflow-y-auto p-6 space-y-6">
-        {renderPage()}
-      </main>
+      {/* Mobile */}
+      <div className="md:hidden">
+        <main className="pb-20 px-4 pt-4"> {/* extra bottom padding */}
+          {renderPage()}
+        </main>
+        <BottomNavPetugas activePage={activePage} onNavigate={setActivePage} />
+      </div>
     </div>
   );
 };

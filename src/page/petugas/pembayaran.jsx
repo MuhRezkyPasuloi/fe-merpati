@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import Cookies from 'js-cookie';
+import Pagination from '../../components/Pagination';
 
 const Pembayaran = () => {
   const [penarikanList, setPenarikanList] = useState([]);
@@ -8,25 +9,37 @@ const Pembayaran = () => {
 
   const token = Cookies.get('token');
   const petugasId = Cookies.get('profile') ? JSON.parse(Cookies.get('profile')).id : null;
+   const itemsPerPage = 10;
+        const [currentPage, setCurrentPage] = useState(1);
+        const totalPages = Math.ceil(penarikanList.length / itemsPerPage);
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const currentData = penarikanList.slice(startIndex, startIndex + itemsPerPage);
 
   const fetchPenarikan = async () => {
-    setLoading(true);
-    try {
-      const res = await axios.get('http://localhost:3000/api/penarikan', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setPenarikanList(res.data.data);
-    } catch (err) {
-      console.error('Gagal memuat data penarikan:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  setLoading(true);
+  try {
+    const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/penarikan`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    // Urutkan berdasarkan tanggal terbaru ke terlama
+    const sortedData = res.data.data.sort((a, b) => {
+      return new Date(b.tgl_penarikan) - new Date(a.tgl_penarikan);
+    });
+
+    setPenarikanList(sortedData);
+  } catch (err) {
+    console.error('Gagal memuat data penarikan:', err);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   const handleKonfirmasi = async (id, status) => {
     try {
       await axios.patch(
-        `http://localhost:3000/api/penarikan/${id}/konfirmasi`,
+        `${import.meta.env.VITE_API_URL}/api/penarikan/${id}/konfirmasi`,
         { status, id_petugas: petugasId },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -52,6 +65,7 @@ const Pembayaran = () => {
         <table className="w-full text-sm text-left border-collapse">
           <thead className="bg-gray-100 text-gray-600">
             <tr>
+              <th className="p-3">No</th>
               <th className="p-3">ID Nasabah</th>
               <th className="p-3">Nominal</th>
               <th className="p-3">Metode</th>
@@ -76,9 +90,10 @@ const Pembayaran = () => {
                 </td>
               </tr>
             ) : (
-              penarikanList.map((p) => (
+              currentData.map((p, index) => (
                 <tr key={p.id} className="border-t">
-                  <td className="p-3">{p.id_nasabah}</td>
+                  <td className='p-3'>{index + 1}</td>
+                  <td className="p-3">TMR/KPS-{p.id_nasabah}</td>
                   <td className="p-3">Rp {p.nominal.toLocaleString()}</td>
                   <td className="p-3 capitalize">{p.metode}</td>
                   <td className="p-3">{p.bank || '-'}</td>
@@ -121,6 +136,14 @@ const Pembayaran = () => {
           </tbody>
         </table>
       </div>
+       {/* Pagination */}
+      {totalPages > 1 && (
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+        />
+      )}
     </div>
   );
 };

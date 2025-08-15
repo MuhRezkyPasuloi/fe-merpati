@@ -4,11 +4,8 @@ import Cookies from 'js-cookie';
 import axios from 'axios';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { FaEye } from 'react-icons/fa';
+import recycle from '../assets/tl (2).png';
 
-import Logo from '../assets/logo.png';
-import Background from '../assets/bgmount3.png';
-import Icon1 from '../assets/mount.png';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -21,12 +18,15 @@ const Login = () => {
     setInput({ ...input, [name]: value });
   };
 
+  const handleForgotPassword = () => {
+    navigate('/forgot-password');
+  }
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      const res = await axios.post("http://localhost:3000/api/auth/login", input);
+      const res = await axios.post(`${import.meta.env.VITE_API_URL}/api/auth/login`, input);
       const { message, token, role, profile } = res.data;
 
       toast.success(message, {
@@ -62,25 +62,21 @@ const Login = () => {
   return (
     <div className="flex h-screen w-screen font-sans">
       {/* Kiri */}
-      <div className="flex-1 bg-gradient-to-br from-yellow-400 to-orange-500 relative flex flex-col justify-center items-center">
-        <img src={Logo} alt="Logo" className="w-60 z-10 mb-5" />
-        <h1 className="text-white font-bold text-2xl z-10">GaPakeRem Adventure</h1>
-        <img
-          src={Background}
-          alt="Background"
-          className="absolute bottom-0 left-0 w-full h-1/2 object-cover z-0"
-        />
+      <div className="flex-1 bg-gradient-to-br from-green-500 to-green-700 relative flex flex-col justify-center items-center">
+        <img src={recycle} alt="Logo" className="w-40 z-10 mb-4" />
+        <h1 className="text-white font-bold text-2xl z-10">Bank Sampah Merpati</h1>
+        <p className="text-green-100 z-10 mt-2">Daur ulang untuk masa depan yang lebih hijau</p>
       </div>
 
       {/* Kanan */}
       <div className="flex-1 flex items-center justify-center p-6 bg-white relative">
         <form onSubmit={handleLogin} className="w-full max-w-md relative z-10">
           <div className="text-center mb-10">
-            <h1 className="text-2xl font-semibold text-[#FFB000]">
-              Selamat Datang, Petualang!
+            <h1 className="text-2xl font-semibold text-green-600">
+              Selamat Datang!
             </h1>
             <p className="text-gray-500 mt-2">
-              Login untuk memulai perjalanan ke puncak impian Anda.
+              Masuk untuk mengelola sampah dan tabungan Anda
             </p>
           </div>
 
@@ -94,7 +90,7 @@ const Login = () => {
               value={input.username}
               disabled={loading}
               required
-              className="w-full p-3 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-orange-400"
+              className="w-full p-3 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-green-400"
             />
           </div>
 
@@ -109,14 +105,14 @@ const Login = () => {
                 value={input.password}
                 disabled={loading}
                 required
-                className="w-full p-3 pr-10 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-orange-400"
+                className="w-full p-3 pr-10 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-green-400"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-3 top-3 text-gray-500"
               >
-                <FaEye />
+                
               </button>
             </div>
           </div>
@@ -125,30 +121,23 @@ const Login = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-[#FF5A00] text-white font-bold py-3 rounded-full hover:bg-orange-600 transition"
+            className="w-full bg-green-600 text-white font-bold py-3 rounded-full hover:bg-green-700 transition"
           >
             Login
           </button>
 
-          {/* Links */}
-          <div className="flex justify-between text-sm text-[#FF5A00] mt-4 font-semibold">
-            <Link to="#">Lupa Password?</Link>
-            <Link to="/register">Belum Punya Akun?</Link>
+         
+          <div className="flex justify-between text-sm text-green-600 mt-4 font-semibold">
+            <button onClick={handleForgotPassword}>Lupa Password?</button>
+            
           </div>
 
           {/* Spinner */}
           {loading && (
             <div className="flex justify-center items-center mt-10">
-              <div className="w-10 h-10 border-4 border-orange-500 border-t-transparent rounded-full animate-spin" />
+              <div className="w-10 h-10 border-4 border-green-600 border-t-transparent rounded-full animate-spin" />
             </div>
           )}
-
-          {/* Footer icons */}
-          <div className="flex justify-center gap-5 mt-20">
-            <img src={Icon1} alt="icon" className="h-10" />
-            <img src={Icon1} alt="icon" className="h-10" />
-            <img src={Icon1} alt="icon" className="h-10" />
-          </div>
         </form>
       </div>
 

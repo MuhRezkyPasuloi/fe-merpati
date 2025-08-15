@@ -15,8 +15,8 @@ const Sidebar = ({ activePage, onNavigate }) => {
   const menuItems = [
     { key: 'overview', label: 'Overview', icon: <FaChartBar /> },
     { key: 'profil', label: 'Profil', icon: <FaUser /> },
+    { key: 'setoran', label: 'Tabungan Sampah', icon: <FaBox /> },
     { key: 'penarikan', label: 'Penarikan Saldo', icon: <FaArrowCircleDown /> },
-    { key: 'setoran', label: 'Setoran Sampah', icon: <FaBox /> },
     { key: 'harga', label: 'Harga Sampah', icon: <FaBalanceScale /> }
   ];
 
@@ -39,7 +39,7 @@ const Sidebar = ({ activePage, onNavigate }) => {
             </div>
             <div>
               <h2 className="text-sm font-semibold text-[#111827]">Dashboard</h2>
-              <p className="text-xs text-[#6B7280]">John Doe</p>
+              <p className="text-xs text-[#6B7280]">Nasabah</p>
             </div>
           </div>
         </div>

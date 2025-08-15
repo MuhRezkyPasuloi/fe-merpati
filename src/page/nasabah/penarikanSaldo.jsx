@@ -9,6 +9,11 @@ const PenarikanSaldo = () => {
   const [bank, setBank] = useState('');
   const [rekening, setRekening] = useState('');
   const [saldo, setSaldo] = useState(0);
+  const [showPopup, setShowPopup] = useState(false);
+const [popupMessage, setPopupMessage] = useState("");
+const [showFullTable, setShowFullTable] = useState(false);
+
+
 
   const profile = JSON.parse(Cookies.get('profile'));
   const token = Cookies.get('token');
@@ -16,7 +21,7 @@ const PenarikanSaldo = () => {
 
   const fetchPenarikan = async () => {
     try {
-      const res = await axios.get('http://localhost:3000/api/penarikan', {
+      const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/penarikan`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const filtered = res.data.data.filter((p) => p.id_nasabah === Number(id_nasabah));
@@ -28,7 +33,7 @@ const PenarikanSaldo = () => {
 
   const fetchSaldo = async () => {
     try {
-      const res = await axios.get(`http://localhost:3000/api/nasabah/${id_nasabah}`, {
+      const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/nasabah/${id_nasabah}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setSaldo(res.data.saldo);
@@ -45,39 +50,91 @@ const PenarikanSaldo = () => {
   }, []);
 
   const handleAjukan = async () => {
-    if (!id_nasabah) return alert('Gagal mengambil ID nasabah, silakan login ulang');
-    if (!jumlah || jumlah < 10000) return alert('Jumlah minimal penarikan adalah Rp 10.000');
+  if (!id_nasabah) {
+    setPopupMessage("Gagal mengambil ID nasabah, silakan login ulang");
+    setShowPopup(true);
+    return;
+  }
 
-    if (metode === 'transfer' && (!bank || !rekening)) {
-      return alert('Bank dan nomor rekening wajib diisi untuk metode transfer');
-    }
+  if (!jumlah || jumlah < 10000) {
+    setPopupMessage("Jumlah minimal penarikan adalah Rp 10.000");
+    setShowPopup(true);
+    return;
+  }
 
-    try {
-      await axios.post(
-        'http://localhost:3000/api/penarikan',
-        {
-          id_nasabah: Number(id_nasabah),
-          nominal: Number(jumlah),
-          metode,
-          bank: metode === 'transfer' ? bank : null,
-          no_rekening: metode === 'transfer' ? rekening : null,
-        },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      alert('Pengajuan berhasil dikirim');
-      setJumlah('');
-      setMetode('transfer');
-      setBank('');
-      setRekening('');
-      fetchPenarikan();
-      fetchSaldo();
-    } catch (err) {
-      console.error('Gagal mengajukan penarikan:', err);
-      alert('Terjadi kesalahan saat mengajukan penarikan');
-    }
+  if (metode === 'transfer' && (!bank || !rekening)) {
+    setPopupMessage("Bank dan nomor rekening wajib diisi untuk metode transfer");
+    setShowPopup(true);
+    return;
+  }
+
+  // =============================
+  // CEK TANGGAL PENARIKAN
+  // =============================
+  const idulFitriDates = {
+    2025: new Date(2025, 2, 30),
+    2026: new Date(2026, 2, 20),
+    2027: new Date(2027, 2, 9),
+    2028: new Date(2028, 1, 26),
+    2029: new Date(2029, 1, 14)
   };
+
+  const today = new Date();
+  const currentYear = today.getFullYear();
+  const idulFitriDate = idulFitriDates[currentYear];
+
+  if (!idulFitriDate) {
+    setPopupMessage("Tanggal Idul Fitri tahun ini belum diatur, silakan hubungi petugas.");
+    setShowPopup(true);
+    return;
+  }
+
+  const startDate = new Date(idulFitriDate);
+  startDate.setDate(startDate.getDate() - 3);
+  const endDate = new Date(idulFitriDate);
+  endDate.setDate(endDate.getDate() - 1);
+
+  if (!(today >= startDate && today <= endDate)) {
+    setPopupMessage(
+      `❌ Gagal melakukan penarikan!\n\n` +
+      `Penarikan hanya diizinkan antara ${startDate.toLocaleDateString('id-ID')} dan ${endDate.toLocaleDateString('id-ID')}.\n` +
+      `Silakan hubungi petugas untuk keterangan lebih lanjut.`
+    );
+    setShowPopup(true);
+    return;
+  }
+
+ 
+  try {
+    await axios.post(
+      `${import.meta.env.VITE_API_URL}/api/penarikan`,
+      {
+        id_nasabah: Number(id_nasabah),
+        nominal: Number(jumlah),
+        metode,
+        bank: metode === 'transfer' ? bank : null,
+        no_rekening: metode === 'transfer' ? rekening : null,
+      },
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+    setPopupMessage("✅ Pengajuan berhasil dikirim");
+    setShowPopup(true);
+
+    setJumlah('');
+    setMetode('transfer');
+    setBank('');
+    setRekening('');
+    fetchPenarikan();
+    fetchSaldo();
+  } catch (err) {
+    console.error('Gagal mengajukan penarikan:', err);
+    setPopupMessage("Terjadi kesalahan saat mengajukan penarikan");
+    setShowPopup(true);
+  }
+};
+
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 p-4 md:p-6">
@@ -167,13 +224,28 @@ const PenarikanSaldo = () => {
           </button>
         </div>
       </div>
+      {/* Popup Modal */}
+{showPopup && (
+  <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
+    <div className="bg-white rounded-lg p-6 w-80 shadow-lg text-center">
+      <h2 className="text-lg font-semibold mb-3">Informasi</h2>
+      <p className="text-sm whitespace-pre-line">{popupMessage}</p>
+      <button
+        onClick={() => setShowPopup(false)}
+        className="mt-4 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md text-sm"
+      >
+        Tutup
+      </button>
+    </div>
+  </div>
+)}
 
       {/* Riwayat dan Info */}
       <div className="space-y-6">
         <div className="bg-white p-4 md:p-6 rounded-lg border border-gray-200">
           <h2 className="text-sm font-semibold mb-4">Riwayat Penarikan</h2>
           <ul className="space-y-4 text-sm">
-            {penarikanList.map((item) => (
+            {penarikanList.slice(0, 3).map((item) => (
               <li key={item.id} className="flex justify-between items-center">
                 <div>
                   <p className="font-medium">Rp {item.nominal.toLocaleString()}</p>
@@ -185,9 +257,11 @@ const PenarikanSaldo = () => {
                   className={`text-sm font-medium rounded-full px-2 py-1 text-white ${
                     item.status === 'disetujui'
                       ? 'bg-green-600'
+                      : item.status === 'pending'
+                      ? 'bg-yellow-500'
                       : item.status === 'ditolak'
                       ? 'bg-red-500'
-                      : 'bg-yellow-500'
+                      : 'bg-gray-500'
                   }`}
                 >
                   {item.status === 'disetujui' ? 'Berhasil' : item.status === 'diproses' ? 'Diproses' : 'Ditolak'}
@@ -195,6 +269,15 @@ const PenarikanSaldo = () => {
               </li>
             ))}
           </ul>
+
+          {penarikanList.length > 3 && (
+            <button
+              onClick={() => setShowFullTable(!showFullTable)}
+              className="mt-4 text-green-600 text-sm hover:underline"
+            >
+              {showFullTable ? "Tutup" : "Selengkapnya"}
+            </button>
+          )}
         </div>
 
         <div className="bg-white p-4 md:p-6 rounded-lg border border-yellow-300">
@@ -206,7 +289,42 @@ const PenarikanSaldo = () => {
             <li>Pastikan data rekening atau e-wallet yang Anda isi sudah benar</li>
           </ul>
         </div>
+        
       </div>
+      {/* Tabel Riwayat Lengkap */}
+  {showFullTable && (
+    <div className="md:col-span-3 bg-white p-4 rounded-lg border border-gray-200">
+      <h2 className="text-sm font-semibold mb-4">Riwayat Penarikan Lengkap</h2>
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm border border-gray-200">
+          <thead className="bg-gray-100">
+            <tr>
+              <th className="border px-2 py-1">No</th>
+              <th className="border px-2 py-1">Nominal</th>
+              <th className="border px-2 py-1">Metode</th>
+              <th className="border px-2 py-1">Bank</th>
+              <th className="border px-2 py-1">No Rekening</th>
+              <th className="border px-2 py-1">Tanggal</th>
+              <th className="border px-2 py-1">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {penarikanList.map((item, index) => (
+              <tr key={item.id} className="text-center">
+                <td className="border px-2 py-1">{index + 1}</td>
+                <td className="border px-2 py-1">Rp {item.nominal.toLocaleString()}</td>
+                <td className="border px-2 py-1">{item.metode}</td>
+                <td className="border px-2 py-1">{item.bank || '-'}</td>
+                <td className="border px-2 py-1">{item.no_rekening || '-'}</td>
+                <td className="border px-2 py-1">{new Date(item.tgl_penarikan).toLocaleDateString('id-ID')}</td>
+                <td className="border px-2 py-1 capitalize">{item.status}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  )}
     </div>
   );
 };

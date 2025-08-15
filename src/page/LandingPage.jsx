@@ -3,7 +3,8 @@ import React, { useEffect, useState } from 'react';
 import AOS from 'aos';
 import 'aos/dist/aos.css';
 import { Menu, X } from 'lucide-react';
-import { FaRecycle, FaLeaf, FaMoneyBillWave, FaTruck, FaBalanceScale, FaCreditCard, FaChartBar, FaUsers, FaShieldAlt, FaEnvelope, FaPhone, FaMapMarkerAlt, FaClock } from 'react-icons/fa';
+import recycle from '../assets/tl.png';
+import { FaRecycle, FaLeaf, FaMoneyBillWave, FaTruck, FaBalanceScale, FaCreditCard, FaChartBar, FaUsers, FaShieldAlt, FaEnvelope, FaPhone, FaMapMarkerAlt, FaClock, } from 'react-icons/fa';
 
 const LandingPage = () => {
   useEffect(() => {
@@ -11,9 +12,9 @@ const LandingPage = () => {
   }, []);
 
   const layanan = [
-    { icon: <FaTruck />, title: 'Penjemputan Sampah', desc: 'Layanan penjemputan langsung ke rumah Anda dengan jadwal fleksibel' },
+    // { icon: <FaTruck />, title: 'Penjualan Sampah', desc: 'Layanan penj langsung ke rumah Anda dengan jadwal fleksibel' },
     { icon: <FaBalanceScale />, title: 'Penimbangan Digital', desc: 'Sistem penimbangan akurat & transparan untuk tiap jenis sampah' },
-    { icon: <FaCreditCard />, title: 'Pembayaran Instan', desc: 'Pembayaran langsung ke rekening atau e-wallet setelah penimbangan' },
+    // { icon: <FaCreditCard />, title: 'Pembayaran Instan', desc: 'Pembayaran langsung ke rekening atau e-wallet setelah penimbangan' },
     { icon: <FaChartBar />, title: 'Laporan & Analitik', desc: 'Pantau kontribusi dan penghasilan Anda lewat dashboard lengkap' },
     { icon: <FaUsers />, title: 'Komunitas Hijau', desc: 'Gabung komunitas peduli lingkungan dan ikut program menarik' },
     { icon: <FaShieldAlt />, title: 'Keamanan Terjamin', desc: 'Sertifikasi aman dan jaminan keamanan data pengguna' },
@@ -36,8 +37,8 @@ const LandingPage = () => {
       <div className="flex items-center justify-between px-6 py-4">
         {/* Logo */}
         <div className="flex items-center gap-2">
-          <img src="/logo.svg" alt="logo" className="h-6" />
-          <span className="font-semibold text-green-600">HijauCycle</span>
+          <FaRecycle />
+          <span className="font-semibold text-green-600">BSU Merpati</span>
         </div>
 
         {/* Desktop Menu */}
@@ -131,36 +132,34 @@ const LandingPage = () => {
         <p className="text-center text-gray-600 max-w-xl mx-auto mb-10">
           Kami menyediakan berbagai layanan bank sampah digital yang memudahkan Anda untuk berkontribusi menjaga lingkungan sambil mendapatkan keuntungan
         </p>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {layanan.map((item, i) => (
             <div
               key={i}
-              className="bg-gray-50 border rounded-lg p-6 text-center shadow-sm hover:shadow-md transition"
+              className="bg-gray-50 border rounded-lg p-6 text-center shadow-sm hover:shadow-md transition flex flex-col items-center"
               data-aos="fade-up"
             >
-              <div className="text-2xl text-green-500 mb-3">{item.icon}</div>
+              <div className="text-2xl text-green-500 mb-3 flex justify-center items-center">{item.icon}</div>
               <h3 className="font-semibold text-gray-800 mb-1">{item.title}</h3>
               <p className="text-sm text-gray-600">{item.desc}</p>
             </div>
           ))}
         </div>
       </section>
-
-      {/* Tentang Kami */}
       <section className="py-20 px-6 md:px-20 bg-green-50" id="tentang">
         <div className="grid md:grid-cols-2 gap-10 items-center">
           <div data-aos="fade-right">
-            <h2 className="text-xl font-bold mb-4 text-gray-800">Tentang HijauCycle</h2>
+            <h2 className="text-xl font-bold mb-4 text-gray-800">Tentang BSU Merpati</h2>
             <p className="text-gray-700 leading-relaxed text-sm mb-4">
-              HijauCycle adalah platform bank sampah digital pertama di Indonesia yang menggabungkan teknologi modern dengan misi pelestarian lingkungan.
+              BSU Merpati adalah platform bank sampah digital pertama di Indonesia yang menggabungkan teknologi modern dengan misi pelestarian lingkungan.
               <br /><br />
               Kami percaya bahwa setiap orang dapat berkontribusi untuk menjaga kelestarian bumi melalui pengelolaan sampah yang bijak. Dengan sistem digital yang mudah dan transparan, kami membantu masyarakat mengubah sampah menjadi sumber penghasilan sambil mengurangi dampak negatif terhadap lingkungan.
             </p>
           </div>
           <img
-            src="https://images.unsplash.com/photo-1607869243024-2213d6d57f5c"
+            src={recycle}
             alt="tree"
-            className="rounded-lg shadow-lg"
+            className="rounded-lg"
             data-aos="fade-left"
           />
         </div>
@@ -186,7 +185,7 @@ const LandingPage = () => {
           <div className="space-y-4 text-sm">
             <div className="flex items-start gap-3"><FaEnvelope className="text-green-500 mt-1" /><div><p className="font-semibold">Email</p><p>info@hijaucycle.com</p></div></div>
             <div className="flex items-start gap-3"><FaPhone className="text-green-500 mt-1" /><div><p className="font-semibold">Telepon</p><p>+62 123 1234 5678</p></div></div>
-            <div className="flex items-start gap-3"><FaMapMarkerAlt className="text-green-500 mt-1" /><div><p className="font-semibold">Alamat</p><p>Jl. Lingkungan Hijau No. 123, Jakarta Selatan</p></div></div>
+            <div className="flex items-start gap-3"><FaMapMarkerAlt className="text-green-500 mt-1" /><div><p className="font-semibold">Alamat</p><p>Jl. Manggis IV, No.8 Blok JB, Kapasa, Tamalanrea, Makassar</p></div></div>
             <div className="flex items-start gap-3"><FaClock className="text-green-500 mt-1" /><div><p className="font-semibold">Jam Operasional</p><p>Senin - Jumat 08:00 - 17:00</p></div></div>
           </div>
           <form className="space-y-4 bg-gray-50 p-6 rounded-lg">
@@ -204,15 +203,15 @@ const LandingPage = () => {
       <footer className="bg-gray-900 text-gray-300 py-10 px-6 md:px-20 text-sm">
         <div className="grid md:grid-cols-4 gap-10">
           <div>
-            <h3 className="text-white font-bold mb-2">HijauCycle</h3>
-            <p>Platform bank sampah digital pertama di Indonesia yang membantu mengelola sampah jadi berkah untuk masa depan yang lebih hijau.</p>
+            <h3 className="text-white font-bold mb-2">BSU Merpati</h3>
+            <p>Platform bank sampah digital yang bertujuan membantu mengelola sampah jadi berkah untuk masa depan yang lebih hijau.</p>
           </div>
           <div>
             <h4 className="text-white font-semibold mb-2">Layanan</h4>
             <ul className="space-y-1">
-              <li>Penjemputan Sampah</li>
+              {/* <li>Penjemputan Sampah</li> */}
               <li>Penimbangan Digital</li>
-              <li>Pembayaran Instan</li>
+              {/* <li>Pembayaran Instan</li> */}
               <li>Laporan & Analitik</li>
               <li>Komunitas Hijau</li>
             </ul>
@@ -229,13 +228,13 @@ const LandingPage = () => {
           <div>
             <h4 className="text-white font-semibold mb-2">Kontak</h4>
             <ul className="space-y-1">
-              <li>info@hijaucycle.com</li>
+              <li>info@merpati.com</li>
               <li>+62 123 1234 5678</li>
-              <li>Jl. Lingkungan Hijau No. 123</li>
+              <li>Jl. Manggis IV, No.8 Blok JB, Kapasa, Tamalanrea, Makassar</li>
             </ul>
           </div>
         </div>
-        <div className="text-center mt-8 text-xs text-gray-500">© 2024 HijauCycle. Semua hak dilindungi.</div>
+        <div className="text-center mt-8 text-xs text-gray-500">© 2024 BSU Merpati. Semua hak dilindungi.</div>
       </footer>
     </div>
   );

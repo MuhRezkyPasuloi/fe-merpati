@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { FaPlus, FaEdit, FaTrash, FaFile } from 'react-icons/fa';
 import axios from 'axios';
+import Pagination from '../../components/Pagination';
 
 const Nasabah = () => {
   const [nasabahList, setNasabahList] = useState([]);
@@ -17,10 +18,15 @@ const Nasabah = () => {
   });
 
   const [previewImage, setPreviewImage] = useState(null);
+  const itemsPerPage = 10;
+      const [currentPage, setCurrentPage] = useState(1);
+      const totalPages = Math.ceil(nasabahList.length / itemsPerPage);
+      const startIndex = (currentPage - 1) * itemsPerPage;
+      const currentData = nasabahList.slice(startIndex, startIndex + itemsPerPage);
 
   const fetchNasabah = async () => {
     try {
-      const res = await axios.get('http://localhost:3000/api/nasabah');
+      const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/nasabah`);
       setNasabahList(res.data);
     } catch (err) {
       console.error('Error fetching data:', err);
@@ -67,7 +73,7 @@ const Nasabah = () => {
 
         if (selectedNasabah) {
         await axios.put(
-            `http://localhost:3000/api/nasabah/${selectedNasabah.id}`,
+            `${import.meta.env.VITE_API_URL}/api/nasabah/${selectedNasabah.id}`,
             payload,
             {
             headers: {
@@ -76,7 +82,9 @@ const Nasabah = () => {
             }
         );
         } else {
-        await axios.post('http://localhost:3000/api/nasabah', payload, {
+          console.log("Data dikirim:", formData);
+
+        await axios.post(`${import.meta.env.VITE_API_URL}/api/nasabah`, payload, {
             headers: {
             'Content-Type': 'multipart/form-data',
             },
@@ -94,7 +102,7 @@ const Nasabah = () => {
   const handleDelete = async (id) => {
     if (confirm('Yakin ingin menghapus nasabah ini?')) {
       try {
-        await axios.delete(`http://localhost:3000/api/nasabah/${id}`);
+        await axios.delete(`${import.meta.env.VITE_API_URL}/api/nasabah/${id}`);
         fetchNasabah();
       } catch (err) {
         console.error('Delete error:', err);
@@ -122,8 +130,9 @@ const Nasabah = () => {
         <table className="min-w-full text-sm">
           <thead className="bg-gray-50 text-gray-500">
             <tr>
+              <th className='p-3 text-left'>NO</th>
+              <th className='p-3 text-left'>ID</th>
               <th className="p-3 text-left">NAMA</th>
-              
               <th className="p-3 text-left">ALAMAT</th>
               <th className="p-3 text-left">NO HP</th>
               <th className="p-3 text-left">SALDO</th>
@@ -132,10 +141,11 @@ const Nasabah = () => {
             </tr>
           </thead>
           <tbody>
-            {nasabahList.map((n) => (
+            {currentData.map((n, index) => (
               <tr key={n.id} className="border-t">
+                <td className='p-3'>{index + 1}</td>
+                <td className='p-3'>TMR/KPS-{n.id}</td>
                 <td className="p-3">{n.nama}</td>
-                
                 <td className="p-3">{n.alamat}</td>
                 <td className="p-3">{n.no_hp}</td>
                 <td className="p-3">Rp {n.saldo.toLocaleString()}</td>
@@ -166,6 +176,15 @@ const Nasabah = () => {
           </tbody>
         </table>
       </div>
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          // onPageChange={(page) => setCurrentPage(page)}
+          onPageChange={setCurrentPage}
+        />
+      )}
 
       {/* Modal Form */}
       {showModal && (

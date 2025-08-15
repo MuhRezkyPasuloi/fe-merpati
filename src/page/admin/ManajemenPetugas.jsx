@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { FaEdit, FaTrash, FaPlus, FaFile } from 'react-icons/fa';
 
-const API_URL = 'http://localhost:3000/api/petugas';
+const API_URL = `${import.meta.env.VITE_API_URL}/api/petugas`;
 
 const ManajemenPetugas = () => {
   const [petugas, setPetugas] = useState([]);
@@ -95,7 +95,7 @@ const ManajemenPetugas = () => {
     <div className="p-6 space-y-6">
       <div>
         <h1 className="text-2xl font-bold">Dashboard Admin</h1>
-        <p className="text-sm text-gray-500">Kelola sistem bank sampah HijauCycle</p>
+        <p className="text-sm text-gray-500">Kelola sistem BSU Merpati</p>
       </div>
 
       <div className="flex justify-between items-center">
@@ -109,8 +109,8 @@ const ManajemenPetugas = () => {
         <table className="min-w-full text-sm">
           <thead className="bg-gray-50 text-left text-gray-500">
             <tr>
+              <th className='px-6 py-3'>No</th>
               <th className="px-6 py-3">Nama</th>
-              
               <th className="px-6 py-3">Posisi</th>
               <th className="px-6 py-3">No HP</th>
               <th className="px-6 py-3">Alamat</th>
@@ -119,10 +119,10 @@ const ManajemenPetugas = () => {
             </tr>
           </thead>
           <tbody>
-            {petugas.map((row) => (
+            {petugas.map((row, index) => (
               <tr key={row.id} className="border-t">
+                <td className="px-6 py-4">{index + 1}</td>
                 <td className="px-6 py-4">{row.nama}</td>
-                
                 <td className="px-6 py-4">{row.posisi}</td>
                 <td className="px-6 py-4">{row.no_hp}</td>
                 <td className="px-6 py-4">{row.alamat}</td>

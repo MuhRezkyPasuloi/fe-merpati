@@ -28,7 +28,9 @@ const SidebarAdmin = ({ activePage, onNavigate }) => {
       label: 'Laporan',
       submenu: [
         { key: 'laporan', label: 'Laporan Bulanan' },
+        { key: 'laporan-tahun', label: 'Laporan Tahunan' },
         { key: 'arsip-laporan', label: 'Arsip Laporan' }
+        
       ]
     }
   ];

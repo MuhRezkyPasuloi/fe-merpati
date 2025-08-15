@@ -5,6 +5,8 @@ import Login from "../page/Login";
 import AdminDash from "../page/adminDash";
 import PetugasDash from "../page/petugasDash";
 import NasabahDash from "../page/nasabahDash";
+import ForgotPassword from "../page/ForgotPassword";
+import ResetPassword from "../page/ResetPassword";
 import Cookies from "js-cookie";
 
 const ProtectedRoute = ({ children, role }) => {
@@ -22,6 +24,8 @@ const DashRoutes = () => {
     <Routes>
   <Route path="/" element={<LandingPage />} />
   <Route path="/login" element={<Login />} />
+  <Route path="/forgot-password" element={<ForgotPassword />}/>
+  <Route path="/reset-password/:token" element={<ResetPassword />} />
 
   <Route
     path="/dashboard/admin"
@@ -47,6 +51,7 @@ const DashRoutes = () => {
       </ProtectedRoute>
     }
   />
+ 
   <Route path="*" element={<Navigate to="/" />} />
 </Routes>
 

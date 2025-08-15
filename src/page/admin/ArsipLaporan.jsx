@@ -22,7 +22,7 @@ const ArsipLaporan = () => {
 
   const fetchArsip = async () => {
     try {
-      const res = await axios.get(`http://localhost:3000/api/laporan/arsip`, {
+      const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/laporan/arsip`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setArsip(res.data.data);
@@ -33,7 +33,7 @@ const ArsipLaporan = () => {
 
   const handleGenerate = async () => {
     try {
-      const res = await axios.get(`http://localhost:3000/api/laporan/bulanan?bulan=${bulan}&tahun=${tahun}`, {
+      const res = await axios.get(`h${import.meta.env.VITE_API_URL}/api/laporan/bulanan?bulan=${bulan}&tahun=${tahun}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       alert(res.data.message);

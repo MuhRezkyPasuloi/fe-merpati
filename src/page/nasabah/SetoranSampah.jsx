@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import Cookies from 'js-cookie';
+import Pagination from '../../components/Pagination';
 import { FaCalendarCheck, FaBalanceScale, FaMoneyBill } from 'react-icons/fa';
 
 const RiwayatItem = ({ tanggal, jenis, berat, harga, penghasilan }) => (
@@ -10,7 +11,7 @@ const RiwayatItem = ({ tanggal, jenis, berat, harga, penghasilan }) => (
         <FaCalendarCheck size={20} />
       </div>
       <div>
-        <h3 className="text-sm font-semibold text-gray-900">Setoran {tanggal}</h3>
+        <h3 className="text-sm font-semibold text-gray-900">Tabungan {tanggal}</h3>
         <div className="mt-2 space-y-1 text-sm text-gray-700">
           <p>
             <span className="font-medium">Jenis Sampah:</span>{' '}
@@ -32,28 +33,38 @@ const RiwayatItem = ({ tanggal, jenis, berat, harga, penghasilan }) => (
         </div>
       </div>
     </div>
-    <button className="text-blue-600 text-sm font-medium border border-blue-200 hover:bg-blue-50 px-3 py-1 rounded">
+    {/* <button className="text-blue-600 text-sm font-medium border border-blue-200 hover:bg-blue-50 px-3 py-1 rounded">
       Lihat Detail
-    </button>
+    </button> */}
   </div>
 );
 
 const SetoranSampah = () => {
   const [riwayat, setRiwayat] = useState([]);
+  const itemsPerPage = 10;
+      const [currentPage, setCurrentPage] = useState(1);
+      const totalPages = Math.ceil(riwayat.length / itemsPerPage);
+      const startIndex = (currentPage - 1) * itemsPerPage;
+      const currentData = riwayat.slice(startIndex, startIndex + itemsPerPage);
 
   const fetchRiwayat = async () => {
   try {
     const token = Cookies.get('token'); // Ganti dari localStorage ke Cookies
 
-    const res = await axios.get('http://localhost:3000/api/tabungan/me', {
+    const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/tabungan/me`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
     });
 
-    setRiwayat(res.data.data || []);
+    // Urutkan dari terbaru ke terlama
+      const sortedData = (res.data.data || []).sort(
+        (a, b) => new Date(b.created_at) - new Date(a.created_at)
+      );
+
+    setRiwayat(sortedData);
   } catch (error) {
-    console.error('Gagal mengambil data riwayat setoran:', error);
+    console.error('Gagal mengambil data riwayat tabungan:', error);
   }
 };
 
@@ -73,21 +84,21 @@ const SetoranSampah = () => {
     <div className="space-y-6 p-6">
       <div className="flex justify-between items-start">
         <div>
-          <h1 className="text-xl font-bold text-gray-900">Setoran Sampah</h1>
+          <h1 className="text-xl font-bold text-gray-900">Tabungan Sampah</h1>
         </div>
         <p className="text-sm text-gray-500 mt-1">📅 Buka setiap hari (08:00 - 16:00)</p>
       </div>
 
       {/* Informasi Setoran */}
       <div className="bg-white border rounded-lg p-6 space-y-4 shadow-sm">
-        <h2 className="text-lg font-semibold text-gray-800">Informasi Setoran Sampah</h2>
+        <h2 className="text-lg font-semibold text-gray-800">Informasi Tabungan Sampah</h2>
         <div className="bg-green-50 border border-green-200 text-green-800 rounded p-4 text-sm">
-          <p className="font-semibold mb-2">Cara Melakukan Setoran Sampah</p>
+          <p className="font-semibold mb-2">Cara Melakukan Tabungan Sampah</p>
           <ol className="list-decimal list-inside space-y-1">
             <li>Pisahkan sampah sesuai kategori (Plastik, Kertas, Logam, Kaca)</li>
-            <li>Datang ke Bank Sampah HijauCycle pada jam operasional</li>
-            <li>Petugas akan menimbang sampah dan mencatat setoran</li>
-            <li>Nilai setoran akan langsung ditambahkan ke saldo akun Anda</li>
+            <li>Datang ke Bank Sampah Merpati pada jam operasional</li>
+            <li>Petugas akan menimbang sampah dan mencatat tabungan</li>
+            <li>Nilai tabungan akan langsung ditambahkan ke saldo akun Anda</li>
           </ol>
         </div>
 
@@ -98,7 +109,7 @@ const SetoranSampah = () => {
             <p>Minggu: 09:00 - 13:00</p>
           </div>
           <div className="border rounded-lg p-4 bg-gray-50">
-            <p className="font-semibold text-gray-800 mb-1">⚖️ Minimal Setoran</p>
+            <p className="font-semibold text-gray-800 mb-1">⚖️ Minimal Tabungan</p>
             <p>1 kg untuk setiap jenis sampah</p>
             <p>Pastikan sampah sudah dibersihkan dan dikeringkan</p>
           </div>
@@ -107,10 +118,10 @@ const SetoranSampah = () => {
 
       {/* Riwayat Setoran */}
       <div>
-        <h2 className="text-lg font-semibold text-gray-800 mb-4">Riwayat Setoran</h2>
+        <h2 className="text-lg font-semibold text-gray-800 mb-4">Riwayat Tabungan</h2>
         {riwayat.length > 0 ? (
           <div className="space-y-4">
-            {riwayat.map((item) => (
+            {currentData.map((item) => (
               <RiwayatItem
                 key={item.id}
                 tanggal={formatTanggal(item.created_at)}
@@ -121,10 +132,19 @@ const SetoranSampah = () => {
               />
             ))}
           </div>
+         
         ) : (
-          <p className="text-sm text-gray-500">Belum ada data setoran.</p>
+          <p className="text-sm text-gray-500">Belum ada data tabungan.</p>
         )}
       </div>
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+        />
+      )}
     </div>
   );
 };
